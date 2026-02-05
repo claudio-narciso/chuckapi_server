@@ -13,10 +13,10 @@
         }
 
         $statement->execute();
-        return $statement->fetch(PDO::FETCH_ASSOC);
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    print_r(select($linkpdo));
+    // print_r(json_encode(select($linkpdo)));
 
     function creerUnePhrase($linkpdo, $phrase) {
         date_default_timezone_set('Europe/Paris');

@@ -25,19 +25,24 @@
 
     switch($http_method) {
         case 'GET':
-            //Récupération des données dans l’URL 
-            if(!isset($_GET['id'])) 
+            //Récupération des données dans l’URL
+            if(isset($_GET['id'])) 
             { 
                 $id=htmlspecialchars($_GET['id']);
                 $result = select($linkpdo, $id);
 
             } else {
-                $result = select($linkpdo, $id);
+                $result = select($linkpdo);
             }
-            print_r(json_encode($result));
-            deliver_response(200, "Données récupérées avec succès");
+            deliver_response(200, "Données récupérées avec succès", $result);
             break;
         case 'POST':
+
+            $postedData = file_get_contents('php://input'); 
+            $data = json_decode($postedData,true);
+
+            creerUnePhrase($linkpdo, $data);
+            deliver_response(200, "Phrase d'id $id a été mis à jours");
             break;
         case 'PUT':
             if(!isset($_PUT['id'])) 
@@ -49,7 +54,6 @@
 
                     misAJour($linkpdo, $data, $id);
                     deliver_response(200, "Phrase d'id $id a été mis à jours");
-
             } 
 
     }
