@@ -2,11 +2,13 @@
     include_once("functions.php");
 
     /// Envoi de la réponse au Client 
+    // TODO: Refactorer et ajouter gérer tous cas d'erreur.
     function deliver_response($status_code, $status_message, $data=null){ 
             /// Paramétrage de l'entête HTTP 
             http_response_code($status_code); //Utilise un message standardisé en fonction du code HTTP 
             //header("HTTP/1.1 $status_code $status_message"); //Permet de personnaliser le message associé au code HTTP 
             header("Content-Type:application/json; charset=utf-8");//Indique au client le format de la réponse            
+            header("Access-Control-Allow-Origin: *");
             $response['status_code'] = $status_code; 
             $response['status_message'] = $status_message; 
             $response['data'] = $data; 
@@ -29,33 +31,50 @@
             if(isset($_GET['id'])) 
             { 
                 $id=htmlspecialchars($_GET['id']);
-                $result = select($linkpdo, $id);
+                $result = readChuckFacts($linkpdo, $id);
 
             } else {
-                $result = select($linkpdo);
+                $result = readChuckFacts($linkpdo);
             }
             deliver_response(200, "Données récupérées avec succès", $result);
             break;
         case 'POST':
-
             $postedData = file_get_contents('php://input'); 
-            $data = json_decode($postedData,true);
+            $dataInput = json_decode($postedData,true);
+            $id = createChuckFact($linkpdo, $dataInput);
+            $dataOutput = readChuckFacts($linkpdo, $id);
 
-            creerUnePhrase($linkpdo, $data);
-            deliver_response(200, "Phrase d'id $id a été mis à jours");
+            deliver_response(201, "Données crées avec succès.", $dataOutput);
             break;
-        case 'PUT':
-            if(!isset($_PUT['id'])) 
-                { 
-                    $id=htmlspecialchars($_GET['id']);
+        case 'PATCH':
+            if(isset($_GET['id'])) 
+            { 
+                $id=htmlspecialchars($_GET['id']);
 
-                    $postedData = file_get_contents('php://input'); 
-                    $data = json_decode($postedData,true);
+                $postedData = file_get_contents('php://input'); 
+                $data = json_decode($postedData,true);
 
-                    misAJour($linkpdo, $data, $id);
-                    deliver_response(200, "Phrase d'id $id a été mis à jours");
-            } 
-
+                updateChuckFact($linkpdo, $data, $id);
+                deliver_response(200, "Phrase d'id $id a été mis à jours");
+            } else {
+                deliver_response(400, "Vous devais specifée l'id de la donnée a mettre à jours.");
+            }
+        case 'DELETE':
+            if(isset($_GET['id'])) {
+                $id=htmlspecialchars($_GET['id']);
+                $deletedLignes = deleteChuckFact($linkpdo, $id);
+                if($deletedLignes === 0) {
+                    deliver_response(404, "Aucune ligne supprimée.");
+                } else {
+                    deliver_response(200, "Donnée d'id $id supprimée avec succées");
+                }
+            } else {
+                deliver_response(400, "Vous devez specifiée un id pour effectuer le delete");
+            }
+        case 'OPTIONS':
+            header('Access-Control-Allow-Methods: *');
+            header(header: 'Access-Control-Allow-Headers: *');
+            deliver_response("204", "Permission donnée");
     }
 
 ?>

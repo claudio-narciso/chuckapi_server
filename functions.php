@@ -3,22 +3,28 @@
 
     $linkpdo = getConnexion();
 
-    function select($linkpdo, $id=null) {
-        $statement = null;
-        if($id === null) {
-            $statement = $linkpdo->prepare("SELECT * FROM chuck_facts");
-        } else {
-            $statement = $linkpdo->prepare("SELECT * FROM chuck_facts WHERE id = :id");
-            $statement->bindParam(':id', $id);
-        }
+    function readChuckFacts(PDO $linkpdo, ?int $id=null) {
+        try {    
+            $statement = null;
+            if($id === null) {
+                $statement = $linkpdo->prepare("SELECT * FROM chuck_facts");
+                if(!$statement) {
+                    die(500);
+                } 
+            } else {
+                $statement = $linkpdo->prepare("SELECT * FROM chuck_facts WHERE id = :id");
+                $statement->bindParam(':id', $id);
+            }
 
-        $statement->execute();
-        return $statement->fetchAll(PDO::FETCH_ASSOC);
+            $statement->execute();
+            return $statement->fetchAll(PDO::FETCH_ASSOC);
+        } catch(PDOException ) {
+
+        }
     }
 
-    // print_r(json_encode(select($linkpdo)));
-
-    function creerUnePhrase($linkpdo, $phrase) {
+    function createChuckFact($linkpdo, $data) {
+        $phrase = $data["phrase"];
         date_default_timezone_set('Europe/Paris');
         $datetime = date('Y-m-d H:i:s');
         $statement = $linkpdo->prepare("INSERT INTO chuck_facts 
@@ -28,10 +34,14 @@
         $statement->bindParam(':phrase', $phrase);
         $statement->bindParam(':created_at', $datetime);
         $statement->bindParam(':modified_at', $datetime);
+        $linkpdo->beginTransaction();
         $statement->execute();
+        $id = $linkpdo->lastInsertId();
+        $linkpdo->commit();
+        return $id;
     }
 
-    function misAJour($linkpdo, $data, $id) {
+    function updateChuckFact($linkpdo, $data, $id) {
         $allowedFields = ["phrase" => "phrase", "vote" => "vote", "faute" => "faute", "signalement" => "signalement"];
 
         $update = [];
@@ -49,9 +59,10 @@
         $statement->execute($params);        
     }
 
-    function delete($linkpdo, $id) {
+    function deleteChuckFact($linkpdo, $id) {
         $statement = $linkpdo->prepare("DELETE FROM chuck_facts WHERE id = :id");
         $statement->bindParam(':id', $id, PDO::PARAM_INT);
-        $statement->execute();        
+        $statement->execute();           
+        return $statement->rowCount();
     }
 ?>
