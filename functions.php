@@ -36,7 +36,7 @@
             $statement->bindParam(':phrase', $phrase);
             $statement->bindParam(':created_at', $datetime);
             $statement->bindParam(':modified_at', $datetime);
-            $statement->beginTransaction();
+            $linkpdo->beginTransaction();
             $statement->execute();
             $id = $linkpdo->lastInsertId();
             $linkpdo->commit();
