@@ -28,11 +28,9 @@
     switch($http_method) {
         case 'GET':
             //Récupération des données dans l’URL
-            if(isset($_GET['id'])) 
-            { 
+            if(isset($_GET['id'])) { 
                 $id=htmlspecialchars($_GET['id']);
                 $result = readChuckFacts($linkpdo, $id);
-
             } else {
                 $result = readChuckFacts($linkpdo);
             }
@@ -59,6 +57,7 @@
             } else {
                 deliver_response(400, "Vous devais specifée l'id de la donnée a mettre à jours.");
             }
+            break;
         case 'DELETE':
             if(isset($_GET['id'])) {
                 $id=htmlspecialchars($_GET['id']);
@@ -71,6 +70,7 @@
             } else {
                 deliver_response(400, "Vous devez specifiée un id pour effectuer le delete");
             }
+            break;
         case 'OPTIONS':
             header('Access-Control-Allow-Methods: *');
             header(header: 'Access-Control-Allow-Headers: *');

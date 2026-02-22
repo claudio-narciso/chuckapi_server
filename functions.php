@@ -1,9 +1,11 @@
-<?php 
+<?php
+    declare(strict_types=1);
+    
     require_once("connexionDB.php");
 
     $linkpdo = getConnexion();
 
-    function select($linkpdo, $id=null) {
+    function readChuckFacts(PDO $linkpdo, ?int $id=null) {
         $statement = null;
         try {
             if($id === null) {
@@ -20,11 +22,10 @@
         }
     }
 
-    print_r(select($linkpdo, 8));
-
     // print_r(json_encode(select($linkpdo)));
 
-    function creerUnePhrase($linkpdo, $phrase) {
+    function createChuckFact($linkpdo, $data) {
+        $phrase = $data['phrase'];
         date_default_timezone_set('Europe/Paris');
         $datetime = date('Y-m-d H:i:s');
         try {
@@ -35,13 +36,17 @@
             $statement->bindParam(':phrase', $phrase);
             $statement->bindParam(':created_at', $datetime);
             $statement->bindParam(':modified_at', $datetime);
+            $statement->beginTransaction();
             $statement->execute();
+            $id = $linkpdo->lastInsertId();
+            $linkpdo->commit();
+            return $id;
         } catch(PDOException $e) {
             throw $e;
         }
     }
 
-    function misAJour($linkpdo, $data, $id) {
+    function updateChuckFact($linkpdo, $data, $id) {
         $allowedFields = ["phrase" => "phrase", "vote" => "vote", "faute" => "faute", "signalement" => "signalement"];
 
         $update = [];
